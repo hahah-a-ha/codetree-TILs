@@ -73,10 +73,10 @@ public class Main {
                 return this.angle - o.angle;
             }
 
-            if (this.x != o.x) {
-                return this.x - o.x;
+            if (this.y != o.y) {
+                return this.y - o.y;
             }
-            return this.y - o.y;
+            return this.x - o.x;
         }
 
     }
