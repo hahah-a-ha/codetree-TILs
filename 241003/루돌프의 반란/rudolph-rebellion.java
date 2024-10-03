@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.*;
 import java.util.*;
 
@@ -71,6 +72,18 @@ public class Main {
 
     static int n;
 
+    public static void interaction(int n, int x, int y, int movex, int movey, int[] santaCheck, int[][] map, HashMap<Integer, int[]> hm) {
+        if (!outOfRange(x, y)) {
+            if (map[x][y] > 0) {
+                interaction(map[x][y], x + movex, y + movey, movex, movey, santaCheck, map, hm);
+            }
+            map[x][y] = n;
+            hm.put(n, new int[]{x, y});
+        } else {
+            santaCheck[n] = -1;
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         // 여기에 코드를 작성해주세요.
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -101,10 +114,18 @@ public class Main {
             hm.put(num, new int[]{x, y});
             map[x][y] = num;
         }
-        int count = p;
+        //int count = p;
         int i = 1;
         while (i <= m) {
             //루돌프 움직임 시작
+            //if (count == 0) break;
+            int check = 0;
+            for(int j=1; j<=p; j++) {
+                if(santaCheck[j] == -1) {
+                    check++;
+                }
+            }
+            if(check == p) break;
             int rcx = rx;
             int rcy = ry;
             PriorityQueue<Distance> pq = new PriorityQueue<>();
@@ -131,39 +152,43 @@ public class Main {
                 score[sn] += c; //해당 산타 점수 획득함.
                 int newSX = rx + dx[sel.i] * c;   //루돌프 이동 방향대로 c만큼 이동
                 int newSY = ry + dy[sel.i] * c;
-                if (outOfRange(newSX, newSY)) {
-                    santaCheck[sn] = -1;
-                    count--;// 산타 탈락함.
-                    if (count == 0) break;
-                    map[rx][ry] = rNum; //루돌프 있게 됨.
-                } else {
-                    if (map[newSX][newSY] > 0) { //산타 있으면 상호 작용 시작
-                        int nnx = newSX;
-                        int nny = newSY;
-                        while (true) {
-                            int origin = map[nnx][nny]; //기존에 있던 산타
-                            int orgx = nnx + dx[sel.i];
-                            int orgy = nny + dy[sel.i];
-                            if (outOfRange(orgx, orgy)) {
-                                santaCheck[origin] = -1;
-                                count--;
-                                if (count == 0) break;
-                                break;
-                            } else if (map[orgx][orgy] == 0) { //이동해서 또 없으면 종료
-                                map[orgx][orgy] = origin;
-                                hm.put(origin, new int[]{orgx, orgy});
-                                break;
-                            } else { //상호 작용 또 발생
-                                nnx = orgx;
-                                nny = orgy;
-                            }
-                        }
-                    }
-                    map[rx][ry] = rNum;
-                    hm.put(sn, new int[]{newSX, newSY});
-                    map[newSX][newSY] = sn;
-                    santaCheck[sn] = i; //충돌했으므로 기절 상태
-                }
+                santaCheck[sn] = i;
+                map[rx][ry] = rNum;
+                interaction(sn, newSX, newSY, dx[sel.i], dy[sel.i], santaCheck, map, hm);
+//                if (outOfRange(newSX, newSY)) {
+//                    santaCheck[sn] = -1;
+//                    count--;// 산타 탈락함.
+//                    if (count == 0) break;
+//                    map[rx][ry] = rNum; //루돌프 있게 됨.
+//                } else {
+//                    if (map[newSX][newSY] > 0) {//산타 있으면 상호 작용 시작
+//                        int nnx = newSX;
+//                        int nny = newSY;
+//                        while (true) {
+//                            int origin = map[nnx][nny]; //기존에 있던 산타
+//                            int orgx = nnx + dx[sel.i];
+//                            int orgy = nny + dy[sel.i];
+//                            if (outOfRange(orgx, orgy)) {
+//                                santaCheck[origin] = -1;
+//                                count--;
+//                                if (count == 0) break;
+//                                break;
+//                            } else if (map[orgx][orgy] == 0) { //이동해서 또 없으면 종료
+//                                map[orgx][orgy] = origin;
+//                                hm.put(origin, new int[]{orgx, orgy});
+//                                break;
+//                            } else { //상호 작용 또 발생
+//                                nnx = orgx;
+//                                nny = orgy;
+//                            }
+//                        }
+//                    }
+//                    if(count==0) break;
+//                    map[rx][ry] = rNum;
+//                    hm.put(sn, new int[]{newSX, newSY});
+//                    map[newSX][newSY] = sn;
+//                    santaCheck[sn] = i; //충돌했으므로 기절 상태
+                //           }
             } else {
                 map[rx][ry] = rNum;
             }
@@ -191,43 +216,48 @@ public class Main {
                     int scolx = cursanta[0] + sdx[s.i] + d * sdx[(s.i + 2) % 4];
                     int scoly = cursanta[1] + sdy[s.i] + d * sdy[(s.i + 2) % 4];
                     score[x] += d;
-                    if (outOfRange(scolx, scoly)) {
-                        santaCheck[x] = -1;
-                        if (count == 0) break;
-                        count--;
-                    } else {
-                        if (map[scolx][scoly] > 0) { //다른 산타 있으면
-                            int nnx = scolx;
-                            int nny = scoly;
-                            while (true) {
-                                int origin = map[nnx][nny];
-                                int orgx = nnx + sdx[(s.i + 2) % 4];
-                                int orgy = nny + sdy[(s.i + 2) % 4];
-                                if (outOfRange(orgx, orgy)) {
-                                    santaCheck[origin] = -1;
-                                    if (count == 0) break;
-                                    count--;
-                                    break;
-                                } else if (map[orgx][orgy] == 0) { //이동해서 또 없으면 종료
-                                    map[orgx][orgy] = origin;
-                                    hm.put(origin, new int[]{orgx, orgy});
-                                    break;
-                                } else { //상호 작용 또 발생
-                                    nnx = orgx;
-                                    nny = orgy;
-                                }
-                            }
-                        }
-                        hm.put(x, new int[]{scolx, scoly});
-                        map[scolx][scoly] = x;
-                        santaCheck[x] = i;
-                    }
+                    santaCheck[x] = i;
+                    interaction(x,scolx, scoly, sdx[(s.i+2)%4], sdy[(s.i+2)%4],santaCheck, map, hm);
+//                    if (outOfRange(scolx, scoly)) {
+//                        santaCheck[x] = -1;
+//                        count--;
+//                        if (count == 0) break;
+//
+//                    } else {
+//                        if (map[scolx][scoly] > 0) { //다른 산타 있으면
+//                            int nnx = scolx;
+//                            int nny = scoly;
+//                            while (true) {
+//                                int origin = map[nnx][nny];
+//                                int orgx = nnx + sdx[(s.i + 2) % 4];
+//                                int orgy = nny + sdy[(s.i + 2) % 4];
+//                                if (outOfRange(orgx, orgy)) {
+//                                    santaCheck[origin] = -1;
+//                                    count--;
+//                                    if (count == 0) break;
+//                                    break;
+//                                } else if (map[orgx][orgy] == 0) { //이동해서 또 없으면 종료
+//                                    map[orgx][orgy] = origin;
+//                                    hm.put(origin, new int[]{orgx, orgy});
+//                                    break;
+//                                } else { //상호 작용 또 발생
+//                                    nnx = orgx;
+//                                    nny = orgy;
+//                                }
+//                            }
+//                        }
+//                        if (count == 0) break;
+//                        hm.put(x, new int[]{scolx, scoly});
+//                        map[scolx][scoly] = x;
+//                        santaCheck[x] = i;
+ //                   }
                 } else {
                     hm.put(x, new int[]{cursanta[0] + sdx[s.i], cursanta[1] + sdy[s.i]});
                     map[cursanta[0] + sdx[s.i]][cursanta[1] + sdy[s.i]] = x;
                 }
-
+                //if (count == 0) break;
             }
+            //if (count == 0) break;
             for (int z = 1; z <= p; z++) {
                 if (santaCheck[z] == -1) continue;
                 score[z]++;
